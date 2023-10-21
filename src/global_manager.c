@@ -147,7 +147,7 @@ static void global_manager_task(void *arg)
 
                     if(global_info.pwm_output_info.duty_cycle < MIN_DUTY_CYCLE)
                     {
-                        global_info.pwm_output_info.duty_cycle = MIN_DUTY_CYCLE;
+                        global_info.pwm_output_info.duty_cycle = 0;
                         global_info.pwm_output_info.update_orientation = INCREASING;
                     }
 
