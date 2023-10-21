@@ -9,6 +9,7 @@
 #include "esp_adc/adc_oneshot.h"
 
 #include "../include/analog_input_manager.h"
+#include "../include/global_manager.h"
 #include "../include/board_def.h"
 //--------------------MACROS Y DEFINES------------------------------------------
 //------------------------------------------------------------------------------
@@ -67,7 +68,7 @@ static void analog_input_manager_task(void* arg)
 
     int adc_read_value[5];
     uint8_t adc_vec_length = (sizeof(adc_read_value) / sizeof(adc_read_value[0]));
-    int val = 0;
+    int val = 0, value_aux = 0, value_aux_ant = 0;
     uint8_t index = 0;
     adc_read_value[index] = 0;
     uint32_t per_pwm = 0;
@@ -95,7 +96,6 @@ static void analog_input_manager_task(void* arg)
                 index++;
                 if(index == adc_vec_length)
                 {
-
                     for(index = 0; index < adc_vec_length; index++)
                     {
                         val += adc_read_value[index];
@@ -103,12 +103,60 @@ static void analog_input_manager_task(void* arg)
                     val = val / adc_vec_length;
                     index = 0;
 
-                    per_pwm = (val*100) / CUENTAS_ADC_100_PER_PWM;
+                    if((val > 0) && (val < 50))
+                    {
+                        value_aux = 5;
+                    }
+                    else if(val < 100)
+                    {
+                        value_aux = 6;
+                    }
+                    else if(val < 150)
+                    {
+                        value_aux = 7;
+                    }
+                    else if(val < 200)
+                    {
+                        value_aux = 8;
+                    }
+                    else if(val < 250)
+                    {
+                        value_aux = 9;
+                    }
+                    else if(val < 300)
+                    {
+                        value_aux = 10;
+                    }
+                    else if(val < 350) 
+                    {
+                        value_aux = 11;
+                    }
+                    else if(val < 400)
+                    {
+                        value_aux = 12;
+                    }
+                    else if(val < 450)
+                    {
+                        value_aux = 13;
+                    }
+                    else if(val < 500) 
+                    {
+                        value_aux = 14;
+                    }
+                    else if(val < 509) 
+                    {
+                        value_aux = 15;
+                    }
+                    else
+                    {
+                        value_aux = 15;
+                    }
                     
-                    //global_manager_set_pwm_power_value_manual((uint8_t)per_pwm);
-                    //#ifdef DEBUG_MODULE
-                    //    printf("Valor ADC channel 5: %d \n", val);
-                    //#endif
+                    if(value_aux != value_aux_ant)
+                    {
+                        global_manager_set_pwm_power_value_manual(value_aux);
+                    }
+                    value_aux_ant = value_aux;
                 }
             }
             else if(ret == ESP_ERR_INVALID_ARG)

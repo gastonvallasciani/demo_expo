@@ -86,6 +86,10 @@ static void global_manager_task(void *arg)
                 break;
             case UPDATE_PWM_OUPUT_CHANGE_TIME:
                 global_info.pwm_output_info.output_pwm_update_time = global_ev.pwm_output_update_new_time;
+                global_info.rele_vege_info.rele_vege_start_cycle_time = global_info.pwm_output_info.output_pwm_update_time;
+                global_info.rele_vege_info.rele_vege_cycle_time_width = global_ev.pwm_output_update_new_time;
+
+                global_info.update_output_counter = 0;
 
                 #ifdef DEBUG_MODULE
                     printf(" New output_pwm_update_time: %d cuentas \n", global_info.pwm_output_info.output_pwm_update_time);
