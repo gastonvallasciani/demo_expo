@@ -149,6 +149,18 @@ static void global_manager_task(void *arg)
                     {
                         global_info.pwm_output_info.duty_cycle = 0;
                         global_info.pwm_output_info.update_orientation = INCREASING;
+
+                        pwm_manager_turn_off_pwm();
+                        vTaskDelay(100 / portTICK_PERIOD_MS);
+                        led_manager_rele_vege_off();
+                        vege_manager_turn_off();
+                        global_info.update_output_counter = 0;
+                        #ifdef DEBUG_MODULE
+                            printf(" TURN OFF RELE VEGE \n");
+                        #endif
+                        global_info.rele_vege_info.enable_rele_vege_cycle = false;
+                        vTaskDelay(100 / portTICK_PERIOD_MS);
+                        pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
                     }
 
                     #ifdef DEBUG_MODULE
@@ -171,10 +183,15 @@ static void global_manager_task(void *arg)
                         printf(" TURN ON RELE VEGE \n");
                     #endif
                     vTaskDelay(100 / portTICK_PERIOD_MS);
+
+                    //global_info.pwm_output_info.duty_cycle -= global_info.pwm_output_info.duty_cycle_step;
+                    global_info.update_output_counter = 0;
                     pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
+
+                    global_info.rele_vege_info.enable_rele_vege_cycle = false;
                 }
 
-                if(global_info.update_output_counter == global_info.rele_vege_info.rele_vege_start_cycle_time + global_info.rele_vege_info.rele_vege_cycle_time_width)
+                /*if(global_info.update_output_counter == global_info.rele_vege_info.rele_vege_start_cycle_time + global_info.rele_vege_info.rele_vege_cycle_time_width)
                 {
                     pwm_manager_turn_off_pwm();
                     vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -187,7 +204,7 @@ static void global_manager_task(void *arg)
                     global_info.rele_vege_info.enable_rele_vege_cycle = false;
                     vTaskDelay(100 / portTICK_PERIOD_MS);
                     pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
-                }
+                }*/
                 
             }
         }
