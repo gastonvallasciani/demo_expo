@@ -71,7 +71,6 @@ static void analog_input_manager_task(void* arg)
     int val = 0, value_aux = 0, value_aux_ant = 0;
     uint8_t index = 0;
     adc_read_value[index] = 0;
-    uint32_t per_pwm = 0;
     esp_err_t ret;
     config_analog_input();
 

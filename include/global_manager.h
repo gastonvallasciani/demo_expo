@@ -27,8 +27,7 @@ typedef struct{
 
 typedef struct{
     uint8_t rele_vege_start_cycle_time;
-    uint8_t rele_vege_cycle_time_width;
-    bool enable_rele_vege_cycle;
+    bool enable_rele_vege_start_cycle;
 }rele_vege_info_t;
 
 typedef struct{
@@ -43,8 +42,6 @@ typedef struct{
 //------------------------------------------------------------------------------
 void global_manager_init(void);
 
-void global_manager_set_rele_vege_status_off(void);
-void global_manager_set_rele_vege_status_on(void);
 void global_manager_set_pwm_power_value_manual(uint8_t output_pwm_change_time);
 //------------------- FIN DEL ARCHIVO ------------------------------------------
 #endif /* GLOBAL_MANAGER_H__ */

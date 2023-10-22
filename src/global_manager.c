@@ -34,8 +34,6 @@
 typedef enum{
     CMD_UNDEFINED = 0,
     UPDATE_PWM_OUPUT_CHANGE_TIME = 1,
-    RELE_VEGE_ON = 2,
-    RELE_VEGE_OFF = 3,
 } global_event_cmds_t;
 
 typedef struct{
@@ -65,8 +63,7 @@ static void global_manager_task(void *arg)
 
     global_info.pwm_output_info.output_pwm_update_time = 10;
     global_info.rele_vege_info.rele_vege_start_cycle_time = global_info.pwm_output_info.output_pwm_update_time;
-    global_info.rele_vege_info.rele_vege_cycle_time_width = 10;
-    global_info.rele_vege_info.enable_rele_vege_cycle = false;
+    global_info.rele_vege_info.enable_rele_vege_start_cycle = false;
     global_info.update_output_counter = 0;
     global_info.pwm_output_info.duty_cycle = MIN_DUTY_CYCLE;
     global_info.pwm_output_info.duty_cycle_step = DUTY_CYCLE_STEP;
@@ -87,23 +84,12 @@ static void global_manager_task(void *arg)
             case UPDATE_PWM_OUPUT_CHANGE_TIME:
                 global_info.pwm_output_info.output_pwm_update_time = global_ev.pwm_output_update_new_time;
                 global_info.rele_vege_info.rele_vege_start_cycle_time = global_info.pwm_output_info.output_pwm_update_time;
-                global_info.rele_vege_info.rele_vege_cycle_time_width = global_ev.pwm_output_update_new_time;
 
                 global_info.update_output_counter = 0;
 
                 #ifdef DEBUG_MODULE
-                    printf(" New output_pwm_update_time: %d cuentas \n", global_info.pwm_output_info.output_pwm_update_time);
+                    printf(" New output_update_time: %d cuentas \n", global_info.pwm_output_info.output_pwm_update_time);
                 #endif
-                break;
-            case RELE_VEGE_ON:
-                //global_info.rele_vege_status = RELE_VEGE_ENABLE;
-                //led_manager_rele_vege_on();
-                //vege_manager_turn_on();
-                break;
-            case RELE_VEGE_OFF:
-                //global_info.rele_vege_status = RELE_VEGE_DISABLE;
-                //led_manager_rele_vege_off();
-                //vege_manager_turn_off();
                 break;
             default:
                 break;
@@ -114,20 +100,20 @@ static void global_manager_task(void *arg)
             global_info.update_output_counter++;
 
             #ifdef DEBUG_MODULE
-                    printf(" Actual update_pwm_output_counter: %d \n", global_info.update_output_counter);
+                    printf(" Actual update_output_counter: %d \n", global_info.update_output_counter);
             #endif
 
-            if((global_info.update_output_counter == global_info.pwm_output_info.output_pwm_update_time) && (global_info.rele_vege_info.enable_rele_vege_cycle == false))
+            if((global_info.update_output_counter == global_info.pwm_output_info.output_pwm_update_time) && (global_info.rele_vege_info.enable_rele_vege_start_cycle == false))
             {
                 if(global_info.pwm_output_info.update_orientation == INCREASING)
                 {
                     global_info.pwm_output_info.duty_cycle += global_info.pwm_output_info.duty_cycle_step;  
                     global_info.update_output_counter = 0;
                     
-                    if(global_info.pwm_output_info.duty_cycle > MAX_DUTY_CYCLE)
+                    if(global_info.pwm_output_info.duty_cycle >= MAX_DUTY_CYCLE)
                     {
                         global_info.pwm_output_info.duty_cycle = MAX_DUTY_CYCLE;
-                        global_info.rele_vege_info.enable_rele_vege_cycle = true;
+                        global_info.rele_vege_info.enable_rele_vege_start_cycle = true;
                         global_info.pwm_output_info.update_orientation = DECREASING;
                         
                     }
@@ -150,17 +136,12 @@ static void global_manager_task(void *arg)
                         global_info.pwm_output_info.duty_cycle = 0;
                         global_info.pwm_output_info.update_orientation = INCREASING;
 
-                        pwm_manager_turn_off_pwm();
-                        vTaskDelay(100 / portTICK_PERIOD_MS);
                         led_manager_rele_vege_off();
                         vege_manager_turn_off();
                         global_info.update_output_counter = 0;
                         #ifdef DEBUG_MODULE
                             printf(" TURN OFF RELE VEGE \n");
-                        #endif
-                        global_info.rele_vege_info.enable_rele_vege_cycle = false;
-                        vTaskDelay(100 / portTICK_PERIOD_MS);
-                        pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
+                        #endif     
                     }
 
                     #ifdef DEBUG_MODULE
@@ -171,7 +152,7 @@ static void global_manager_task(void *arg)
                     pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
                 }
             }
-            else if(global_info.rele_vege_info.enable_rele_vege_cycle == true)
+            else if(global_info.rele_vege_info.enable_rele_vege_start_cycle == true)
             {
                 if(global_info.update_output_counter == global_info.rele_vege_info.rele_vege_start_cycle_time)
                 {
@@ -184,28 +165,11 @@ static void global_manager_task(void *arg)
                     #endif
                     vTaskDelay(100 / portTICK_PERIOD_MS);
 
-                    //global_info.pwm_output_info.duty_cycle -= global_info.pwm_output_info.duty_cycle_step;
                     global_info.update_output_counter = 0;
                     pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
 
-                    global_info.rele_vege_info.enable_rele_vege_cycle = false;
+                    global_info.rele_vege_info.enable_rele_vege_start_cycle = false;
                 }
-
-                /*if(global_info.update_output_counter == global_info.rele_vege_info.rele_vege_start_cycle_time + global_info.rele_vege_info.rele_vege_cycle_time_width)
-                {
-                    pwm_manager_turn_off_pwm();
-                    vTaskDelay(100 / portTICK_PERIOD_MS);
-                    led_manager_rele_vege_off();
-                    vege_manager_turn_off();
-                    global_info.update_output_counter = 0;
-                    #ifdef DEBUG_MODULE
-                        printf(" TURN OFF RELE VEGE \n");
-                    #endif
-                    global_info.rele_vege_info.enable_rele_vege_cycle = false;
-                    vTaskDelay(100 / portTICK_PERIOD_MS);
-                    pwm_manager_update_pwm(global_info.pwm_output_info.duty_cycle);
-                }*/
-                
             }
         }
     }
@@ -218,20 +182,6 @@ void global_manager_init(void)
 
     xTaskCreate(global_manager_task, "global_manager_task", configMINIMAL_STACK_SIZE * 15,
                 NULL, configMAX_PRIORITIES - 1, NULL);
-}
-//------------------------------------------------------------------------------
-void global_manager_set_rele_vege_status_off(void)
-{
-    global_event_t ev;
-    ev.cmd = RELE_VEGE_OFF;
-    xQueueSend(global_manager_queue, &ev, 10);
-}
-//------------------------------------------------------------------------------
-void global_manager_set_rele_vege_status_on(void)
-{
-    global_event_t ev;
-    ev.cmd = RELE_VEGE_ON;
-    xQueueSend(global_manager_queue, &ev, 10);
 }
 //------------------------------------------------------------------------------
 void global_manager_set_pwm_power_value_manual(uint8_t output_pwm_change_time)

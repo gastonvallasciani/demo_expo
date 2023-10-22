@@ -47,6 +47,8 @@ QueueHandle_t led_manager_queue;
 //------------------------------------------------------------------------------
 static void config_led_power_up(void);
 static void config_led_rele_vege_status_up(void);
+static void config_led_device_mode_status(void);
+static void config_led_pwm_status(void);
 
 static void set_power_on_indicator(void);
 static void set_rele_vege_on_indicator(void);
@@ -85,6 +87,40 @@ static void config_led_rele_vege_status_up(void)
     gpio_config(&io_conf);
 
     gpio_set_level(RELE_VEGE_STATUS_LED, LED_OFF);
+}
+//------------------------------------------------------------------------------
+static void config_led_device_mode_status(void)
+{
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;            // desactivar interrupción
+    io_conf.mode = GPIO_MODE_OUTPUT;                  // establecer en modo salida
+    io_conf.pin_bit_mask = (1ULL << DEVICE_MODE_LED); // configurar pin
+    io_conf.pull_down_en = 0;                         // desactivar pull-down
+    io_conf.pull_up_en = 0;                           // desactivar pull-up
+    gpio_config(&io_conf);
+
+    gpio_set_level(DEVICE_MODE_LED, LED_OFF);
+}
+//------------------------------------------------------------------------------
+static void config_led_pwm_status(void)
+{
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;        // desactivar interrupción
+    io_conf.mode = GPIO_MODE_OUTPUT;              // establecer en modo salida
+    io_conf.pin_bit_mask = (1ULL << PWM_LED_RED); // configurar pin
+    io_conf.pull_down_en = 0;                     // desactivar pull-down
+    io_conf.pull_up_en = 0;                       // desactivar pull-up
+    gpio_config(&io_conf);
+
+    io_conf.intr_type = GPIO_INTR_DISABLE;          // desactivar interrupción
+    io_conf.mode = GPIO_MODE_OUTPUT;                // establecer en modo salida
+    io_conf.pin_bit_mask = (1ULL << PWM_LED_GREEN); // configurar pin
+    io_conf.pull_down_en = 0;                       // desactivar pull-down
+    io_conf.pull_up_en = 0;                         // desactivar pull-up
+    gpio_config(&io_conf);
+
+    gpio_set_level(PWM_LED_RED, LED_OFF);
+    gpio_set_level(PWM_LED_GREEN, LED_OFF);
 }
 //------------------------------------------------------------------------------
 static void set_power_on_indicator(void)
@@ -147,6 +183,8 @@ void led_manager_init(void)
 {
     config_led_power_up();
     config_led_rele_vege_status_up();
+    config_led_device_mode_status();
+    config_led_pwm_status();
 
     led_manager_queue = xQueueCreate(QUEUE_ELEMENT_QUANTITY, sizeof(led_event_t));
 
